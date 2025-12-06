@@ -1,0 +1,1934 @@
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>ArtShare – Share your photos & digital art</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+  /* === Theme variables === */
+  :root[data-theme="dark"] {
+    /* Dusty rose / plum studio at night */
+    --bg-body: #311624;
+    --bg-body-soft: #5b3042;
+    --header-bg: rgba(22, 10, 18, 0.94);
+    --card-bg: rgba(22, 10, 18, 0.96);
+    --border-color: #7b3b52;
+    --text-main: #fdf2f8;   /* almost white */
+    --text-muted: #f9a8d4;  /* soft pink */
+  }
+
+  /* ---------- Soft pastel blush light mode (Option A) ---------- */
+  :root[data-theme="light"] {
+    --bg-body: #fff6f8;      /* very soft blush */
+    --bg-body-soft: #f7d7e6; /* slightly deeper rosy */
+    --header-bg: #ffffff;
+    --card-bg: #ffffff;
+    --border-color: #e7d7de;
+    --text-main: #111827;   /* very dark grey for readability */
+    --text-muted: #6b7280;  /* mid grey for secondary text */
+    --accent-pink: #ec4899;
+    --accent-blue: #60a5fa;
+    --soft-shadow: 0 8px 28px rgba(16,24,40,0.06);
+  }
+
+  /* === Global background & typography === */
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text-main);
+    background:
+      radial-gradient(circle at top left, var(--bg-body-soft) 0, var(--bg-body) 45%, #160b13 100%);
+    min-height: 100vh;
+    transition: background-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+  }
+
+  /* Soft “birds & leaves” style shapes */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.22;
+    background-image:
+      radial-gradient(ellipse at 15% 20%, rgba(251, 191, 36, 0.18) 0, transparent 55%),
+      radial-gradient(ellipse at 85% 80%, rgba(45, 212, 191, 0.18) 0, transparent 55%),
+      radial-gradient(ellipse at 80% 10%, rgba(129, 140, 248, 0.16) 0, transparent 55%);
+    mix-blend-mode: screen;
+  }
+
+  :root[data-theme="light"] body::before {
+    opacity: 0.28;
+    mix-blend-mode: multiply;
+  }
+
+  .theme-header {
+    background-color: var(--header-bg);
+    border-color: var(--border-color);
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+
+  .glass,
+  .theme-card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    backdrop-filter: blur(14px);
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Light mode text tweaks */
+  :root[data-theme="light"] .theme-card,
+  :root[data-theme="light"] .theme-card * {
+    color: var(--text-main);
+  }
+
+  :root[data-theme="light"] .theme-card .text-slate-400,
+  :root[data-theme="light"] .theme-card .text-slate-300 {
+    color: var(--text-muted);
+  }
+
+  :root[data-theme="light"] .theme-header,
+  :root[data-theme="light"] .theme-header * {
+    color: var(--text-main);
+  }
+
+  :root[data-theme="light"] .theme-header .text-slate-300 {
+    color: var(--text-muted);
+  }
+
+  /* Light-mode styling for header buttons (neutral soft outlines) */
+  :root[data-theme="light"] #themeToggle,
+  :root[data-theme="light"] #profileBtn,
+  :root[data-theme="light"] #signOutBtn,
+  :root[data-theme="light"] #exploreBtn {
+    background-color: transparent;
+    border-color: var(--border-color);
+    color: var(--text-main);
+    box-shadow: none;
+  }
+
+  :root[data-theme="light"] #themeToggle:hover,
+  :root[data-theme="light"] #profileBtn:hover,
+  :root[data-theme="light"] #signOutBtn:hover,
+  :root[data-theme="light"] #exploreBtn:hover {
+    background-color: rgba(236,72,153,0.06);
+  }
+
+  /* Form controls: white with dark text in light mode */
+  :root[data-theme="light"] input[type="text"],
+  :root[data-theme="light"] input[type="email"],
+  :root[data-theme="light"] input[type="password"],
+  :root[data-theme="light"] input[type="file"],
+  :root[data-theme="light"] textarea {
+    background-color: #ffffff !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: none !important;
+  }
+
+  :root[data-theme="light"] textarea:focus,
+  :root[data-theme="light"] input[type="text"]:focus,
+  :root[data-theme="light"] input[type="email"]:focus,
+  :root[data-theme="light"] input[type="password"]:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(96,165,250,0.12);
+  }
+
+  :root[data-theme="light"] input::placeholder,
+  :root[data-theme="light"] textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  :root[data-theme="light"] #postForm .border-dashed {
+    background-color: #ffffff;
+    border-color: var(--border-color);
+  }
+
+  :root[data-theme="light"] #feed article,
+  :root[data-theme="light"] #publicFeed article,
+  :root[data-theme="light"] #exploreFeed article {
+    background-color: #ffffff;
+    border-color: var(--border-color);
+  }
+
+  /* Force commonly used dark-tailwind utility classes to adopt light variables (non-invasive) */
+  :root[data-theme="light"] .bg-slate-900,
+  :root[data-theme="light"] .bg-slate-950,
+  :root[data-theme="light"] .bg-slate-950\/60,
+  :root[data-theme="light"] .bg-slate-900\/60 {
+    background-color: var(--card-bg) !important;
+    color: var(--text-main) !important;
+    box-shadow: var(--soft-shadow);
+  }
+
+  :root[data-theme="light"] .border-slate-700,
+  :root[data-theme="light"] .border-slate-800,
+  :root[data-theme="light"] .border-slate-800\/80 {
+    border-color: var(--border-color) !important;
+  }
+
+  :root[data-theme="light"] .text-slate-300,
+  :root[data-theme="light"] .text-slate-400,
+  :root[data-theme="light"] .text-slate-200 {
+    color: var(--text-muted) !important;
+  }
+
+  /* Feed/article overrides for light mode */
+  :root[data-theme="light"] #feed article,
+  :root[data-theme="light"] #publicFeed article,
+  :root[data-theme="light"] #profileFeed article,
+  :root[data-theme="light"] #exploreFeed article,
+  :root[data-theme="light"] #explorePreview article {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    box-shadow: var(--soft-shadow);
+  }
+
+  /* Explore preview layout (right column of auth card) */
+  #authCard .auth-grid { gap: 18px; align-items: start; }
+  @media (min-width: 880px) {
+    #authCard .auth-grid { grid-template-columns: 1fr 360px; display: grid; }
+  }
+
+  #explorePreview {
+    padding-left: 12px;
+    margin-left: 6px;
+  }
+  #explorePreview .preview-header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  #explorePreview .preview-list { max-height: 420px; overflow-y: auto; padding-right: 6px; }
+  #explorePreview article { padding: 10px; border-radius: 12px; }
+
+  /* Disabled-looking action buttons for preview */
+  .explore-preview .action-btn.disabled {
+    pointer-events: none;
+    opacity: 0.62;
+    filter: grayscale(10%);
+  }
+
+  /* Small note text */
+  .preview-note { font-size: 11px; color: var(--text-muted); }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.9);
+    border-radius: 999px;
+  }
+  </style>
+</head>
+<body class="text-sm">
+  <!-- Header -->
+  <header class="theme-header border-b border-slate-800/70 shadow-sm shadow-slate-950/30">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-400 via-emerald-400 to-pink-400 flex items-center justify-center font-bold text-slate-900">
+          A
+        </div>
+        <div>
+          <div class="font-semibold text-base">ArtShare</div>
+          <div class="text-[11px] text-slate-300">
+            Share your photos &amp; digital art with other creators
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          id="themeToggle"
+          class="px-3 py-1.5 rounded-full border border-slate-600 bg-slate-900/60 text-xs font-medium hover:bg-slate-800/80 transition">
+          Light mode
+        </button>
+
+        <button
+          id="exploreBtn"
+          class="px-3 py-1.5 rounded-full border border-slate-600 bg-slate-900/60 text-xs font-medium hover:bg-slate-800/80 transition">
+          Explore
+        </button>
+
+        <span
+          id="navUser"
+          class="hidden text-xs px-2 py-1 rounded-full bg-slate-900/40 border border-slate-700">
+        </span>
+
+        <button
+          id="profileBtn"
+          class="hidden px-3 py-1.5 rounded-full border border-slate-600 bg-slate-900/60 text-xs font-medium hover:bg-slate-800/80 transition">
+          Profile
+        </button>
+        <button
+          id="signOutBtn"
+          class="hidden px-3 py-1.5 rounded-full border border-rose-500/70 bg-rose-500/10 text-xs font-medium hover:bg-rose-500/20 transition">
+          Sign out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <!-- AUTH CARD -->
+    <section
+      id="authCard"
+      class="theme-card border border-slate-800/80 rounded-3xl p-6 shadow-xl shadow-slate-950/50 max-w-xl mx-auto">
+      <h1 class="text-xl font-semibold mb-1">Welcome to ArtShare</h1>
+      <p class="text-xs text-slate-300 mb-5">
+        Create an account or sign in to start posting your artwork.
+      </p>
+
+      <div class="flex mb-4 rounded-full bg-slate-900/70 p-1">
+        <button
+          id="tabSignIn"
+          class="flex-1 text-xs py-2 rounded-full text-center bg-slate-800 text-slate-50 font-medium">
+          Sign in
+        </button>
+        <button
+          id="tabSignUp"
+          class="flex-1 text-xs py-2 rounded-full text-center text-slate-400">
+          Create account
+        </button>
+      </div>
+
+      <form id="authForm" class="space-y-3">
+        <div id="usernameGroup" class="hidden">
+          <label class="block text-xs font-medium mb-1">Username</label>
+          <input
+            id="usernameInput"
+            type="text"
+            class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:ring focus:ring-sky-500/50"
+            placeholder="artlover" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium mb-1">Email</label>
+          <input
+            id="emailInput"
+            type="email"
+            class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:ring focus:ring-sky-500/50"
+            placeholder="you@example.com"
+            required />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium mb-1">Password</label>
+          <input
+            id="passwordInput"
+            type="password"
+            class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:ring focus:ring-sky-500/50"
+            placeholder="••••••••"
+            required />
+        </div>
+
+        <p
+          id="authError"
+          class="hidden text-[11px] text-rose-400 bg-rose-500/10 border border-rose-500/40 rounded-xl px-3 py-2">
+        </p>
+
+        <button
+          type="submit"
+          class="w-full mt-2 py-2.5 rounded-full bg-gradient-to-r from-sky-400 via-emerald-400 to-pink-400 text-slate-950 text-sm font-semibold shadow-lg shadow-sky-500/30 hover:brightness-110 transition">
+          <span id="authButtonLabelSignIn">Sign in</span>
+          <span id="authButtonLabelSignUp" class="hidden">Create account</span>
+        </button>
+
+        <p class="text-[10px] text-slate-400 mt-3">
+          This demo uses Firebase Authentication and Firestore. Do not use an important password here.
+        </p>
+      </form>
+    </section>
+
+    <!-- MAIN UPLOAD + FEED CARD -->
+    <section
+      id="uploadCard"
+      class="theme-card border border-slate-800/80 rounded-3xl p-5 shadow-xl shadow-slate-950/50 mt-4 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- LEFT: Post new artwork -->
+        <div class="lg:col-span-1 space-y-4">
+          <h2 class="text-lg font-semibold">Post new artwork</h2>
+          <p class="text-xs text-slate-300">
+            Share a photo, illustration, or AI piece with the community.
+          </p>
+
+          <form id="postForm" class="space-y-4">
+            <!-- Image picker -->
+            <div>
+              <label class="block text-xs font-medium mb-1">Image file</label>
+              <div
+                class="border border-dashed border-slate-700 rounded-2xl px-4 py-4 bg-slate-950/60 flex flex-col items-start gap-3">
+                <button
+                  type="button"
+                  id="pickImageBtn"
+                  class="px-3 py-1.5 text-xs rounded-full bg-sky-500/90 text-slate-950 font-semibold hover:bg-sky-400">
+                  Choose image
+                </button>
+                <input id="imageInput" type="file" accept="image/*" class="hidden" />
+                <p id="imageFileLabel" class="text-[11px] text-slate-400">
+                  No file selected
+                </p>
+              </div>
+            </div>
+
+            <!-- Caption -->
+            <div>
+              <label class="block text-xs font-medium mb-1">Caption</label>
+              <textarea
+                id="captionInput"
+                rows="3"
+                maxlength="220"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950/70 border border-slate-700 text-sm resize-none focus:outline-none focus:ring focus:ring-sky-500/50"
+                placeholder="Tell people about your artwork..."></textarea>
+              <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                <span>0 / 220</span>
+                <span id="captionCounter">0 / 220</span>
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div>
+              <label class="block text-xs font-medium mb-1">Tags / hashtags</label>
+              <input
+                id="tagsInput"
+                type="text"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950/70 border border-slate-700 text-sm focus:outline-none focus:ring focus:ring-sky-500/50"
+                placeholder="#birds, #wildlife, #snakes" />
+              <p class="text-[10px] text-slate-400 mt-1">
+                Separate tags with commas or spaces. # will be added automatically.
+              </p>
+            </div>
+
+            <p
+              id="postError"
+              class="hidden text-[11px] text-rose-400 bg-rose-500/10 border border-rose-500/40 rounded-xl px-3 py-2">
+            </p>
+
+            <button
+              id="postBtn"
+              type="submit"
+              class="w-full mt-2 py-2.5 rounded-full bg-gradient-to-r from-sky-400 via-emerald-400 to-pink-400 text-slate-950 text-sm font-semibold shadow-lg shadow-sky-500/30 hover:brightness-110 transition flex items-center justify-center gap-2">
+              <span id="postBtnLabel">Post artwork</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- RIGHT: Feed -->
+        <div class="lg:col-span-2 flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold">Latest posts</h2>
+              <p class="text-xs text-slate-300">
+                Public gallery of user-submitted artwork.
+              </p>
+            </div>
+            <button
+              id="refreshBtn"
+              class="px-3 py-1.5 rounded-full border border-slate-700 text-xs hover:bg-slate-900">
+              Refresh
+            </button>
+          </div>
+
+          <!-- Active filters -->
+          <div
+            id="feedFilters"
+            class="hidden text-[11px] text-sky-300 flex items-center justify-between px-3 py-2 rounded-xl bg-slate-950/70 border border-slate-700">
+            <span id="feedFilterText">Filtered posts</span>
+            <button
+              id="clearFiltersBtn"
+              class="px-2 py-1 rounded-full border border-slate-600 hover:bg-slate-900">
+              Clear filters
+            </button>
+          </div>
+
+          <div
+            id="feed"
+            class="space-y-4 max-h-[520px] overflow-y-auto pr-1 scrollbar-thin">
+            <!-- Posts render here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- YOUR PROFILE (editable) -->
+    <section
+      id="profileCard"
+      class="theme-card border border-slate-800/80 rounded-3xl p-5 shadow-xl shadow-slate-950/50 mt-4 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Profile left -->
+        <div class="space-y-4 lg:col-span-1">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Your profile</h2>
+            <button
+              id="backToUploadBtn"
+              class="px-3 py-1.5 rounded-full border border-slate-600 text-xs hover:bg-slate-900/70">
+              Back to posts
+            </button>
+          </div>
+          <p class="text-xs text-slate-300">
+            Update your avatar and bio for your ArtShare presence.
+          </p>
+
+          <div class="flex items-center gap-3">
+            <div
+              id="profileAvatar"
+              class="w-16 h-16 rounded-full bg-gradient-to-tr from-sky-400 to-emerald-400 flex items-center justify-center text-slate-950 font-bold text-xl">
+              A
+            </div>
+            <div>
+              <div id="profileName" class="font-semibold text-sm">Your username</div>
+              <button
+                id="pickProfilePhotoBtn"
+                class="mt-1 px-3 py-1.5 rounded-full border border-slate-600 text-xs hover:bg-slate-900/70">
+                Upload profile photo
+              </button>
+              <input id="profilePhotoInput" type="file" accept="image/*" class="hidden" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium mb-1">Bio</label>
+            <textarea
+              id="bioInput"
+              rows="5"
+              class="w-full px-3 py-2 rounded-xl bg-slate-950/70 border border-slate-700 text-sm resize-none focus:outline-none focus:ring focus:ring-sky-500/50"
+              placeholder="Tell people a little bit about your art..."></textarea>
+            <p class="text-[10px] text-slate-400 mt-1">
+              This bio may be shown on your profile and next to your posts in future updates.
+            </p>
+          </div>
+
+          <button
+            id="saveProfileBtn"
+            class="w-full py-2.5 rounded-full bg-gradient-to-r from-sky-400 via-emerald-400 to-pink-400 text-slate-950 text-sm font-semibold shadow-lg shadow-sky-500/30 hover:brightness-110 transition">
+            Save profile
+          </button>
+
+          <p
+            id="profileMessage"
+            class="hidden text-[11px] mt-2">
+          </p>
+        </div>
+
+        <!-- Right: simple preview feed -->
+        <div class="lg:col-span-2">
+          <h3 class="text-sm font-semibold mb-2">Latest posts</h3>
+          <p class="text-[11px] text-slate-300 mb-3">
+            A quick view of the public feed while you edit your profile.
+          </p>
+          <div
+            class="max-h-[520px] overflow-y-auto pr-1 scrollbar-thin border border-slate-800/80 rounded-2xl bg-slate-950/60">
+            <div id="profileFeed" class="space-y-4 p-3"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PUBLIC PROFILE (read-only) -->
+    <section
+      id="publicProfileCard"
+      class="theme-card border border-slate-800/80 rounded-3xl p-5 shadow-xl shadow-slate-950/50 mt-4 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Public profile left -->
+        <div class="space-y-4 lg:col-span-1">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Artist profile</h2>
+            <button
+              id="backFromPublicBtn"
+              class="px-3 py-1.5 rounded-full border border-slate-600 text-xs hover:bg-slate-900/70">
+              Back to feed
+            </button>
+          </div>
+          <p class="text-xs text-slate-300">
+            Public profile page visible to anyone viewing this artist’s work.
+          </p>
+
+          <div class="flex items-center gap-3">
+            <div
+              id="publicProfileAvatar"
+              class="w-16 h-16 rounded-full bg-gradient-to-tr from-sky-400 to-emerald-400 flex items-center justify-center text-slate-950 font-bold text-xl">
+              A
+            </div>
+            <div>
+              <div id="publicProfileName" class="font-semibold text-sm">Artist name</div>
+              <div id="publicProfileTagline" class="text-xs text-slate-300"></div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium mb-1">Bio</label>
+            <p
+              id="publicProfileBio"
+              class="text-xs text-slate-200 bg-slate-950/60 border border-slate-700 rounded-xl px-3 py-2 min-h-[60px]">
+            </p>
+          </div>
+        </div>
+
+        <!-- Right: user posts -->
+        <div class="lg:col-span-2">
+          <h3 class="text-sm font-semibold mb-2">Artwork by this artist</h3>
+          <p class="text-[11px] text-slate-300 mb-3">
+            Recent posts shared publicly by this user.
+          </p>
+          <div
+            class="max-h-[520px] overflow-y-auto pr-1 scrollbar-thin border border-slate-800/80 rounded-2xl bg-slate-950/60">
+            <div id="publicFeed" class="space-y-4 p-3"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLORE / TAG PAGE -->
+    <section
+      id="exploreCard"
+      class="theme-card border border-slate-800/80 rounded-3xl p-5 shadow-xl shadow-slate-950/50 mt-4 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: tag cloud -->
+        <div class="space-y-4 lg:col-span-1">
+          <h2 class="text-lg font-semibold">Explore by tag</h2>
+          <p class="text-xs text-slate-300">
+            Browse artwork by tags like <span class="font-semibold">#birds</span>, <span class="font-semibold">#snakes</span>, <span class="font-semibold">#wildlife</span>, and more.
+          </p>
+
+          <div
+            id="exploreTagList"
+            class="flex flex-wrap gap-2 text-[11px] mt-2">
+          </div>
+
+          <p class="text-[10px] text-slate-400 mt-1">
+            Tags are collected from recent public posts.
+          </p>
+        </div>
+
+        <!-- Right: posts for selected tag -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center justify-between mb-2">
+            <h3 id="exploreHeading" class="text-sm font-semibold">
+              Browse artwork by tag
+            </h3>
+            <div class="flex items-center gap-2">
+              <button
+                id="exploreClearBtn"
+                class="hidden text-[11px] px-2 py-1 rounded-full border border-slate-600 hover:bg-slate-900/70">
+                Clear tag
+              </button>
+              <button
+                id="exploreBackBtn"
+                class="text-[11px] px-3 py-1.5 rounded-full border border-slate-600 hover:bg-slate-900/70">
+                Back to feed
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="max-h-[520px] overflow-y-auto pr-1 scrollbar-thin border border-slate-800/80 rounded-2xl bg-slate-950/60">
+            <div id="exploreFeed" class="space-y-4 p-3"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FIREBASE APP SCRIPT -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut,
+      updateProfile,
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      query,
+      orderBy,
+      limit,
+      getDocs,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      arrayUnion,
+      arrayRemove,
+      deleteDoc,
+      where,
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL,
+      deleteObject,
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+    // YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQweH-NLmyOyfIEZViBvlldeKG59crsV8",
+      authDomain: "artsharesocial-6ff9c.firebaseapp.com",
+      projectId: "artsharesocial-6ff9c",
+      storageBucket: "artsharesocial-6ff9c.firebasestorage.app",
+      messagingSenderId: "336143084016",
+      appId: "1:336143084016:web:fd50cbfb88c04a2f1a1535"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // ---------- DOM ELEMENTS ----------
+    const tabSignIn = document.getElementById("tabSignIn");
+    const tabSignUp = document.getElementById("tabSignUp");
+    const usernameGroup = document.getElementById("usernameGroup");
+    const usernameInput = document.getElementById("usernameInput");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const authForm = document.getElementById("authForm");
+    const authError = document.getElementById("authError");
+    const authButtonLabelSignIn = document.getElementById("authButtonLabelSignIn");
+    const authButtonLabelSignUp = document.getElementById("authButtonLabelSignUp");
+
+    const authCard = document.getElementById("authCard");
+    const uploadCard = document.getElementById("uploadCard");
+    const profileCard = document.getElementById("profileCard");
+    const publicProfileCard = document.getElementById("publicProfileCard");
+    const exploreCard = document.getElementById("exploreCard");
+
+    const navUser = document.getElementById("navUser");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const profileBtn = document.getElementById("profileBtn");
+    const themeToggle = document.getElementById("themeToggle");
+    const exploreBtn = document.getElementById("exploreBtn");
+
+    const pickImageBtn = document.getElementById("pickImageBtn");
+    const imageInput = document.getElementById("imageInput");
+    const imageFileLabel = document.getElementById("imageFileLabel");
+    const captionInput = document.getElementById("captionInput");
+    const captionCounter = document.getElementById("captionCounter");
+    const tagsInput = document.getElementById("tagsInput");
+    const postForm = document.getElementById("postForm");
+    const postError = document.getElementById("postError");
+    const postBtn = document.getElementById("postBtn");
+    const postBtnLabel = document.getElementById("postBtnLabel");
+
+    const feed = document.getElementById("feed");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const feedFilters = document.getElementById("feedFilters");
+    const feedFilterText = document.getElementById("feedFilterText");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+
+    const backToUploadBtn = document.getElementById("backToUploadBtn");
+    const profileAvatar = document.getElementById("profileAvatar");
+    const profileName = document.getElementById("profileName");
+    const pickProfilePhotoBtn = document.getElementById("pickProfilePhotoBtn");
+    const profilePhotoInput = document.getElementById("profilePhotoInput");
+    const bioInput = document.getElementById("bioInput");
+    const saveProfileBtn = document.getElementById("saveProfileBtn");
+    const profileMessage = document.getElementById("profileMessage");
+    const profileFeed = document.getElementById("profileFeed");
+
+    const publicProfileAvatar = document.getElementById("publicProfileAvatar");
+    const publicProfileName = document.getElementById("publicProfileName");
+    const publicProfileTagline = document.getElementById("publicProfileTagline");
+    const publicProfileBio = document.getElementById("publicProfileBio");
+    const publicFeed = document.getElementById("publicFeed");
+    const backFromPublicBtn = document.getElementById("backFromPublicBtn");
+
+    const exploreTagList = document.getElementById("exploreTagList");
+    const exploreFeed = document.getElementById("exploreFeed");
+    const exploreHeading = document.getElementById("exploreHeading");
+    const exploreClearBtn = document.getElementById("exploreClearBtn");
+    const exploreBackBtn = document.getElementById("exploreBackBtn");
+
+    // ---------- STATE ----------
+    let authMode = "signin";
+    let postsCache = [];
+    let activeTag = null;
+    let activeUserUid = null;
+    let publicProfileUid = null;
+    let currentExploreTag = null;
+
+    // ---------- THEME ----------
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      root.setAttribute("data-theme", theme);
+      localStorage.setItem("artshare-theme", theme);
+      if (themeToggle) {
+        themeToggle.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+      }
+    }
+
+    const savedTheme = localStorage.getItem("artshare-theme");
+    applyTheme(savedTheme === "light" ? "light" : "dark");
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") || "dark";
+        const next = current === "dark" ? "light" : "dark";
+        applyTheme(next);
+      });
+    }
+
+    // ---------- HELPERS ----------
+    function setAuthMode(mode) {
+      authMode = mode;
+      if (mode === "signin") {
+        tabSignIn.classList.add("bg-slate-800", "text-slate-50");
+        tabSignIn.classList.remove("text-slate-400");
+        tabSignUp.classList.remove("bg-slate-800", "text-slate-50");
+        tabSignUp.classList.add("text-slate-400");
+        usernameGroup.classList.add("hidden");
+        authButtonLabelSignIn.classList.remove("hidden");
+        authButtonLabelSignUp.classList.add("hidden");
+      } else {
+        tabSignUp.classList.add("bg-slate-800", "text-slate-50");
+        tabSignUp.classList.remove("text-slate-400");
+        tabSignIn.classList.remove("bg-slate-800", "text-slate-50");
+        tabSignIn.classList.add("text-slate-400");
+        usernameGroup.classList.remove("hidden");
+        authButtonLabelSignIn.classList.add("hidden");
+        authButtonLabelSignUp.classList.remove("hidden");
+      }
+      authError.classList.add("hidden");
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Build HTML for posts (used by main feed, profile, public profile, explore)
+    function buildPostsHtml(postList) {
+      if (!postList.length) {
+        return '<p class="text-xs text-slate-400">No posts yet.</p>';
+      }
+
+      const currentUser = auth.currentUser;
+      const currentUserId = currentUser ? currentUser.uid : null;
+      let html = "";
+
+      postList.forEach(({ id, data }) => {
+        const caption = data.caption || "";
+        const username = data.username || "Anonymous";
+        const createdAt =
+          data.createdAt && data.createdAt.toDate
+            ? data.createdAt.toDate()
+            : null;
+        const dateStr = createdAt ? createdAt.toLocaleString() : "";
+        const tags = Array.isArray(data.tags) ? data.tags : [];
+        const likes = Array.isArray(data.likes) ? data.likes : [];
+        const comments = Array.isArray(data.comments) ? data.comments : [];
+        const likesCount = likes.length;
+        const isLiked = currentUserId ? likes.includes(currentUserId) : false;
+        const likeEmoji = isLiked ? "💖" : "🤍";
+        const likeText = likesCount === 1 ? "1 like" : `${likesCount} likes`;
+        const reshareLabel = data.reshareOfUsername
+          ? `<div class="text-[10px] text-slate-400">Reshared from ${escapeHtml(
+              data.reshareOfUsername
+            )}</div>`
+          : "";
+
+        const canDelete = currentUserId && data.uid === currentUserId;
+
+        const tagsHtml = tags.length
+          ? `<div class="px-3.5 pt-1 pb-2 text-[11px] text-sky-300 flex flex-wrap gap-1">
+              ${tags
+                .map(
+                  (tag) =>
+                    `<button class="px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 hover:bg-slate-800" data-tag="${escapeHtml(
+                      tag
+                    )}">#${escapeHtml(tag)}</button>`
+                )
+                .join("")}
+            </div>`
+          : "";
+
+        const commentsToShow = comments.slice(-3);
+        let commentsHtml = "";
+        if (commentsToShow.length) {
+          commentsHtml =
+            '<div class="space-y-1 text-[11px] text-slate-200">' +
+            commentsToShow
+              .map((c) => {
+                const cname = escapeHtml(c.username || "User");
+                const ctext = escapeHtml(c.text || "");
+                return `<div class="flex items-start gap-1.5">
+                          <span class="font-semibold">${cname}</span>
+                          <span class="text-slate-200">${ctext}</span>
+                        </div>`;
+              })
+              .join("") +
+            (comments.length > commentsToShow.length
+              ? `<div class="text-[11px] text-slate-400">View all ${comments.length} comments</div>`
+              : "") +
+            "</div>";
+        } else {
+          commentsHtml =
+            '<p class="text-[11px] text-slate-400">No comments yet.</p>';
+        }
+
+        const commentFormHtml = currentUser
+          ? `<form class="flex items-center gap-2 mt-2" data-comment-form-id="${id}">
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                class="flex-1 bg-slate-950/60 border border-slate-700 rounded-full px-3 py-1.5 text-[11px] focus:outline-none focus:ring focus:ring-sky-500/40"
+                data-comment-input="${id}"
+              />
+              <button
+                type="submit"
+                class="text-[11px] px-3 py-1.5 rounded-full border border-slate-700 hover:bg-slate-800">
+                Post
+              </button>
+            </form>`
+          : '<p class="text-[11px] text-slate-400 mt-1">Sign in to comment.</p>';
+
+        const commentsSectionHtml = `
+          <div class="px-3.5 pt-2 pb-2 border-t border-slate-800 bg-slate-950/70">
+            ${commentsHtml}
+            ${commentFormHtml}
+          </div>
+        `;
+
+        const reshareButtonHtml = currentUser
+          ? `<button class="px-2 py-1 rounded-full border border-slate-700 hover:bg-slate-800" data-reshare-id="${id}">
+              🔁 Reshare
+            </button>`
+          : "";
+
+        const deleteButtonHtml = canDelete
+          ? `<button class="px-2 py-1 rounded-full border border-rose-500 text-rose-300 hover:bg-rose-500/10" data-delete-id="${id}">
+              🗑 Delete
+            </button>`
+          : "";
+
+        const actionsHtml = `
+          <div class="px-3.5 py-2 flex items-center justify-between text-[11px] border-t border-slate-800 bg-slate-950/80">
+            <div class="flex items-center gap-2">
+              <button class="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-700 hover:bg-slate-800" data-like-id="${id}">
+                <span>${likeEmoji}</span>
+                <span>${likeText}</span>
+              </button>
+            </div>
+            <div class="flex items-center gap-2">
+              ${reshareButtonHtml}
+              ${deleteButtonHtml}
+            </div>
+          </div>
+        `;
+
+        html += `
+          <article class="border border-slate-800 rounded-2xl bg-slate-950/70 overflow-hidden shadow-lg shadow-slate-950/60">
+            <div class="flex items-center justify-between px-3.5 py-2.5 text-[11px] bg-slate-950/80 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-400 to-emerald-400 flex items-center justify-center text-slate-950 text-[10px] font-bold">
+                  ${username[0] ? escapeHtml(username[0].toUpperCase()) : "A"}
+                </div>
+                <div>
+                  <button class="font-medium text-left hover:underline" data-user-uid="${data.uid || ""}" data-username="${escapeHtml(username)}">
+                    ${escapeHtml(username)}
+                  </button>
+                  ${reshareLabel}
+                  ${
+                    dateStr
+                      ? `<div class="text-[10px] text-slate-400">${escapeHtml(
+                          dateStr
+                        )}</div>`
+                      : ""
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="bg-slate-900">
+              <img
+                src="${data.imageUrl}"
+                alt="User artwork"
+                class="w-full max-h-[360px] object-contain bg-slate-900"
+                loading="lazy"
+              />
+            </div>
+            ${
+              caption
+                ? `<div class="px-3.5 py-2.5 text-xs text-slate-200 border-t border-slate-800">${escapeHtml(
+                    caption
+                  )}</div>`
+                : ""
+            }
+            ${tagsHtml}
+            ${commentsSectionHtml}
+            ${actionsHtml}
+          </article>
+        `;
+      });
+
+      return html;
+    }
+
+    // ---------- AUTH TABS ----------
+    tabSignIn.addEventListener("click", () => setAuthMode("signin"));
+    tabSignUp.addEventListener("click", () => setAuthMode("signup"));
+
+    // ---------- AUTH SUBMIT ----------
+    authForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      authError.classList.add("hidden");
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const username = usernameInput.value.trim() || email.split("@")[0];
+
+      if (!email || !password) return;
+
+      const submitButton = authForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.classList.add("opacity-70");
+
+      try {
+        if (authMode === "signup") {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(cred.user, { displayName: username });
+
+          await setDoc(doc(db, "users", cred.user.uid), {
+            username,
+            bio: "",
+            photoURL: "",
+            createdAt: serverTimestamp(),
+          });
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch (err) {
+        authError.textContent = err.message;
+        authError.classList.remove("hidden");
+      } finally {
+        submitButton.disabled = false;
+        submitButton.classList.remove("opacity-70");
+      }
+    });
+
+    // ---------- AUTH STATE ----------
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authCard.classList.add("hidden");
+        profileCard.classList.add("hidden");
+        publicProfileCard.classList.add("hidden");
+        exploreCard.classList.add("hidden");
+        uploadCard.classList.remove("hidden");
+
+        navUser.classList.remove("hidden");
+        signOutBtn.classList.remove("hidden");
+        profileBtn.classList.remove("hidden");
+        navUser.textContent = user.displayName || user.email;
+      } else {
+        authCard.classList.remove("hidden");
+        uploadCard.classList.add("hidden");
+        profileCard.classList.add("hidden");
+        publicProfileCard.classList.add("hidden");
+        exploreCard.classList.add("hidden");
+        navUser.classList.add("hidden");
+        signOutBtn.classList.add("hidden");
+        profileBtn.classList.add("hidden");
+        navUser.textContent = "";
+      }
+
+      activeTag = null;
+      activeUserUid = null;
+      publicProfileUid = null;
+      currentExploreTag = null;
+      loadFeed();
+    });
+
+    signOutBtn.addEventListener("click", () => signOut(auth));
+
+    // ---------- NAV: PROFILE, BACK ----------
+    profileBtn.addEventListener("click", () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      authCard.classList.add("hidden");
+      uploadCard.classList.add("hidden");
+      publicProfileCard.classList.add("hidden");
+      exploreCard.classList.add("hidden");
+      profileCard.classList.remove("hidden");
+      loadUserProfileIntoForm();
+      profileFeed.innerHTML = buildPostsHtml(postsCache);
+    });
+
+    backToUploadBtn.addEventListener("click", () => {
+      profileCard.classList.add("hidden");
+      publicProfileCard.classList.add("hidden");
+      exploreCard.classList.add("hidden");
+      const user = auth.currentUser;
+      if (user) uploadCard.classList.remove("hidden");
+      else authCard.classList.remove("hidden");
+    });
+
+    // ---------- EXPLORE NAV ----------
+    if (exploreBtn) {
+      exploreBtn.addEventListener("click", () => {
+        showExplore();
+      });
+    }
+
+    if (exploreBackBtn) {
+      exploreBackBtn.addEventListener("click", () => {
+        exploreCard.classList.add("hidden");
+        const user = auth.currentUser;
+        if (user) {
+          uploadCard.classList.remove("hidden");
+        } else {
+          authCard.classList.remove("hidden");
+        }
+      });
+    }
+
+    if (exploreClearBtn) {
+      exploreClearBtn.addEventListener("click", () => {
+        currentExploreTag = null;
+        renderExploreFeed();
+      });
+    }
+
+    if (exploreTagList) {
+      exploreTagList.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-explore-tag]");
+        if (!btn) return;
+        const tag = btn.getAttribute("data-explore-tag");
+        if (!tag) return;
+        currentExploreTag = tag;
+        renderExploreFeed();
+      });
+    }
+
+    // ---------- UPLOAD UI ----------
+    pickImageBtn.addEventListener("click", () => imageInput.click());
+    imageInput.addEventListener("change", () => {
+      const file = imageInput.files[0];
+      imageFileLabel.textContent = file ? file.name : "No file selected";
+    });
+
+    captionInput.addEventListener("input", () => {
+      captionCounter.textContent = `${captionInput.value.length} / 220`;
+    });
+
+    // ---------- POST SUBMIT ----------
+    postForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      postError.classList.add("hidden");
+
+      const user = auth.currentUser;
+      if (!user) {
+        postError.textContent = "You must be signed in to post.";
+        postError.classList.remove("hidden");
+        return;
+      }
+
+      const file = imageInput.files[0];
+      if (!file) {
+        postError.textContent = "Please choose an image file first.";
+        postError.classList.remove("hidden");
+        return;
+      }
+
+      const rawTags = (tagsInput.value || "").trim();
+      const tags = rawTags
+        ? rawTags
+            .split(/[\s,]+/)
+            .map((t) => t.trim().replace(/^#/, "").toLowerCase())
+            .filter(Boolean)
+        : [];
+
+      postBtn.disabled = true;
+      postBtn.classList.add("opacity-70");
+      postBtnLabel.textContent = "Uploading...";
+
+      try {
+        const fileRef = ref(
+          storage,
+          `posts/${user.uid}/${Date.now()}_${file.name}`
+        );
+        await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(fileRef);
+
+        await addDoc(collection(db, "posts"), {
+          uid: user.uid,
+          username: user.displayName || user.email,
+          caption: captionInput.value.trim(),
+          imageUrl: downloadURL,
+          tags,
+          likes: [],
+          comments: [],
+          reshareOf: null,
+          reshareOfUsername: null,
+          createdAt: serverTimestamp(),
+        });
+
+        imageInput.value = "";
+        imageFileLabel.textContent = "No file selected";
+        captionInput.value = "";
+        captionCounter.textContent = "0 / 220";
+        tagsInput.value = "";
+
+        await loadFeed();
+      } catch (err) {
+        postError.textContent = err.message;
+        postError.classList.remove("hidden");
+      } finally {
+        postBtn.disabled = false;
+        postBtn.classList.remove("opacity-70");
+        postBtnLabel.textContent = "Post artwork";
+      }
+    });
+
+    // ---------- PROFILE LOGIC ----------
+    async function loadUserProfileIntoForm() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      profileName.textContent = user.displayName || user.email || "Your username";
+      profileMessage.classList.add("hidden");
+
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        let profileData = null;
+        if (snap.exists()) {
+          profileData = snap.data();
+        } else {
+          profileData = {
+            username: user.displayName || user.email,
+            bio: "",
+            photoURL: user.photoURL || "",
+          };
+          await setDoc(userRef, { ...profileData, createdAt: serverTimestamp() });
+        }
+
+        bioInput.value = profileData.bio || "";
+        setProfileAvatarDisplay(profileAvatar, user, profileData);
+      } catch (err) {
+        profileMessage.textContent = err.message;
+        profileMessage.classList.remove("hidden");
+        profileMessage.classList.add("text-rose-400");
+      }
+    }
+
+    function setProfileAvatarDisplay(targetEl, user, profileData) {
+      const name =
+        (profileData && profileData.username) ||
+        user.displayName ||
+        user.email ||
+        "";
+      const initial = name ? name[0].toUpperCase() : "A";
+      const photoURL =
+        (profileData && profileData.photoURL) || user.photoURL || "";
+
+      if (photoURL) {
+        targetEl.style.backgroundImage = `url(${photoURL})`;
+        targetEl.style.backgroundSize = "cover";
+        targetEl.style.backgroundPosition = "center";
+        targetEl.textContent = "";
+      } else {
+        targetEl.style.backgroundImage = "";
+        targetEl.textContent = initial;
+      }
+    }
+
+    saveProfileBtn.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      profileMessage.classList.add("hidden");
+
+      try {
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            username: user.displayName || user.email,
+            bio: bioInput.value.trim(),
+            photoURL: user.photoURL || "",
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+        profileMessage.textContent = "Profile saved.";
+        profileMessage.classList.remove("hidden");
+        profileMessage.classList.remove("text-rose-400");
+        profileMessage.classList.add("text-emerald-400");
+      } catch (err) {
+        profileMessage.textContent = err.message;
+        profileMessage.classList.remove("hidden");
+        profileMessage.classList.remove("text-emerald-400");
+        profileMessage.classList.add("text-rose-400");
+      }
+    });
+
+    pickProfilePhotoBtn.addEventListener("click", () => profilePhotoInput.click());
+
+    profilePhotoInput.addEventListener("change", async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const file = profilePhotoInput.files[0];
+      if (!file) return;
+
+      profileMessage.textContent = "Uploading photo...";
+      profileMessage.classList.remove("hidden");
+      profileMessage.classList.remove("text-rose-400");
+      profileMessage.classList.add("text-slate-300");
+
+      try {
+        const avatarRef = ref(
+          storage,
+          `avatars/${user.uid}/${Date.now()}_${file.name}`
+        );
+        await uploadBytes(avatarRef, file);
+        const url = await getDownloadURL(avatarRef);
+        await updateProfile(user, { photoURL: url });
+        await setDoc(
+          doc(db, "users", user.uid),
+          { photoURL: url, updatedAt: serverTimestamp() },
+          { merge: true }
+        );
+        setProfileAvatarDisplay(profileAvatar, user, {
+          username: user.displayName || user.email,
+          photoURL: url,
+        });
+        profileMessage.textContent = "Profile photo updated.";
+        profileMessage.classList.remove("text-slate-300");
+        profileMessage.classList.add("text-emerald-400");
+        loadFeed();
+      } catch (err) {
+        profileMessage.textContent = err.message;
+        profileMessage.classList.remove("text-slate-300");
+        profileMessage.classList.add("text-rose-400");
+      }
+    });
+
+    // ---------- FEED ----------
+    async function loadFeed() {
+      try {
+        feed.innerHTML =
+          '<p class="text-xs text-slate-400">Loading posts...</p>';
+        const postsRef = collection(db, "posts");
+        const qAll = query(postsRef, orderBy("createdAt", "desc"), limit(60));
+        const snap = await getDocs(qAll);
+
+        postsCache = [];
+        snap.forEach((docSnap) => {
+          postsCache.push({ id: docSnap.id, data: docSnap.data() });
+        });
+
+        renderFeed();
+
+        if (!exploreCard.classList.contains("hidden")) {
+          buildExploreTagCloud();
+          renderExploreFeed();
+        }
+      } catch (err) {
+        feed.innerHTML = `<p class="text-xs text-rose-400">Error loading posts: ${escapeHtml(
+          err.message
+        )}</p>`;
+      }
+    }
+
+    function renderFeed() {
+      if (!postsCache.length) {
+        feed.innerHTML =
+          '<p class="text-xs text-slate-400">No posts yet. Once users start sharing, new artwork will appear here.</p>';
+        feedFilters.classList.add("hidden");
+        return;
+      }
+
+      let filtered = postsCache;
+
+      if (activeTag) {
+        filtered = filtered.filter(
+          (p) => Array.isArray(p.data.tags) && p.data.tags.includes(activeTag)
+        );
+      }
+
+      if (activeUserUid) {
+        filtered = filtered.filter((p) => p.data.uid === activeUserUid);
+      }
+
+      if (activeTag || activeUserUid) {
+        feedFilters.classList.remove("hidden");
+        let text = "Filtered posts";
+        if (activeTag) text = `Posts tagged #${activeTag}`;
+        if (activeUserUid && !activeTag) text = "Posts from this user";
+        feedFilterText.textContent = text;
+      } else {
+        feedFilters.classList.add("hidden");
+      }
+
+      if (!filtered.length) {
+        feed.innerHTML =
+          '<p class="text-xs text-slate-400">No posts match this filter yet.</p>';
+        return;
+      }
+
+      feed.innerHTML = buildPostsHtml(filtered);
+    }
+
+    refreshBtn.addEventListener("click", () => {
+      activeTag = null;
+      activeUserUid = null;
+      renderFeed();
+    });
+
+    clearFiltersBtn.addEventListener("click", () => {
+      activeTag = null;
+      activeUserUid = null;
+      renderFeed();
+    });
+
+    function attachFeedInteractions(container) {
+      if (!container) return;
+
+      container.addEventListener("click", async (e) => {
+        const likeBtn = e.target.closest("[data-like-id]");
+        if (likeBtn) {
+          const postId = likeBtn.getAttribute("data-like-id");
+          await handleLike(postId);
+          return;
+        }
+
+        const tagBtn = e.target.closest("[data-tag]");
+        if (tagBtn && container === feed) {
+          const tag = tagBtn.getAttribute("data-tag");
+          activeTag = tag;
+          activeUserUid = null;
+          renderFeed();
+          return;
+        }
+
+        const userBtn = e.target.closest("[data-user-uid]");
+        if (userBtn) {
+          const uid = userBtn.getAttribute("data-user-uid");
+          const uname = userBtn.getAttribute("data-username") || "";
+          if (uid) {
+            showPublicProfile(uid, uname);
+          }
+          return;
+        }
+
+        const reshareBtn = e.target.closest("[data-reshare-id]");
+        if (reshareBtn) {
+          const postId = reshareBtn.getAttribute("data-reshare-id");
+          await handleReshare(postId);
+          return;
+        }
+
+        const deleteBtn = e.target.closest("[data-delete-id]");
+        if (deleteBtn) {
+          const postId = deleteBtn.getAttribute("data-delete-id");
+          await handleDelete(postId);
+          return;
+        }
+      });
+
+      container.addEventListener("submit", async (e) => {
+        const form = e.target.closest("[data-comment-form-id]");
+        if (!form) return;
+        e.preventDefault();
+
+        const postId = form.getAttribute("data-comment-form-id");
+        const input = form.querySelector(`[data-comment-input="${postId}"]`);
+        if (!input) return;
+
+        const text = input.value.trim();
+        if (!text) return;
+
+        await handleAddComment(postId, text);
+        input.value = "";
+      });
+    }
+
+    attachFeedInteractions(feed);
+    attachFeedInteractions(publicFeed);
+    attachFeedInteractions(exploreFeed);
+
+    // ---------- LIKE / RESHARE / DELETE / COMMENT ----------
+    async function handleLike(postId) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You need to sign in to like posts.");
+        return;
+      }
+
+      const entry = postsCache.find((p) => p.id === postId);
+      if (!entry) return;
+
+      const likes = Array.isArray(entry.data.likes) ? entry.data.likes : [];
+      const alreadyLiked = likes.includes(user.uid);
+
+      try {
+        await updateDoc(doc(db, "posts", postId), {
+          likes: alreadyLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+        });
+
+        await loadFeed();
+        if (publicProfileUid) {
+          await loadPublicFeedForUser(publicProfileUid);
+        }
+      } catch (err) {
+        console.error("Error updating like:", err);
+      }
+    }
+
+    async function handleReshare(postId) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You need to sign in to reshare posts.");
+        return;
+      }
+
+      const entry = postsCache.find((p) => p.id === postId);
+      if (!entry) return;
+
+      const { data } = entry;
+
+      try {
+        await addDoc(collection(db, "posts"), {
+          uid: user.uid,
+          username: user.displayName || user.email,
+          caption: data.caption || "",
+          imageUrl: data.imageUrl,
+          tags: Array.isArray(data.tags) ? data.tags : [],
+          likes: [],
+          comments: [],
+          reshareOf: postId,
+          reshareOfUsername: data.username || "",
+          createdAt: serverTimestamp(),
+        });
+
+        await loadFeed();
+        if (publicProfileUid) {
+          await loadPublicFeedForUser(publicProfileUid);
+        }
+      } catch (err) {
+        console.error("Error resharing post:", err);
+      }
+    }
+
+    async function handleDelete(postId) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You need to sign in to delete posts.");
+        return;
+      }
+
+      const entry = postsCache.find((p) => p.id === postId);
+      if (!entry) return;
+
+      if (entry.data.uid !== user.uid) {
+        alert("You can only delete your own posts.");
+        return;
+      }
+
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this post? This cannot be undone."
+      );
+      if (!confirmDelete) return;
+
+      try {
+        if (entry.data.imageUrl) {
+          try {
+            const imgRef = ref(storage, entry.data.imageUrl);
+            await deleteObject(imgRef);
+          } catch (imgErr) {
+            console.warn("Could not delete image file (will ignore):", imgErr);
+          }
+        }
+
+        await deleteDoc(doc(db, "posts", postId));
+
+        await loadFeed();
+        if (publicProfileUid) {
+          await loadPublicFeedForUser(publicProfileUid);
+        }
+      } catch (err) {
+        console.error("Error deleting post:", err);
+        alert("Could not delete post: " + err.message);
+      }
+    }
+
+    async function handleAddComment(postId, text) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You need to sign in to comment.");
+        return;
+      }
+
+      try {
+        const comment = {
+          uid: user.uid,
+          username: user.displayName || user.email,
+          text,
+          createdAt: Date.now(),
+        };
+
+        await updateDoc(doc(db, "posts", postId), {
+          comments: arrayUnion(comment),
+        });
+
+        await loadFeed();
+        if (publicProfileUid) {
+          await loadPublicFeedForUser(publicProfileUid);
+        }
+      } catch (err) {
+        console.error("Error adding comment:", err);
+        alert("Could not add comment: " + err.message);
+      }
+    }
+
+    // ---------- PUBLIC PROFILE ----------
+    async function showPublicProfile(uid, fallbackName = "") {
+      publicProfileUid = uid;
+
+      authCard.classList.add("hidden");
+      uploadCard.classList.add("hidden");
+      profileCard.classList.add("hidden");
+      exploreCard.classList.add("hidden");
+      publicProfileCard.classList.remove("hidden");
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", uid));
+        let profileData = null;
+        if (userDoc.exists()) {
+          profileData = userDoc.data();
+        } else {
+          profileData = {
+            username: fallbackName || "ArtShare user",
+            bio: "",
+            photoURL: "",
+          };
+        }
+
+        const displayName = profileData.username || fallbackName || "ArtShare user";
+        publicProfileName.textContent = displayName;
+        publicProfileTagline.textContent = displayName ? `@${displayName}` : "";
+        publicProfileBio.textContent =
+          profileData.bio || "This artist has not added a bio yet.";
+
+        setProfileAvatarDisplay(
+          publicProfileAvatar,
+          { displayName: displayName, email: "" },
+          profileData
+        );
+      } catch (err) {
+        publicProfileName.textContent = "ArtShare user";
+        publicProfileBio.textContent = "Error loading profile.";
+      }
+
+      await loadPublicFeedForUser(uid);
+    }
+
+    async function loadPublicFeedForUser(uid) {
+      try {
+        publicFeed.innerHTML =
+          '<p class="text-xs text-slate-400">Loading posts...</p>';
+
+        const postsRef = collection(db, "posts");
+        const qUser = query(postsRef, where("uid", "==", uid), limit(60));
+        const snap = await getDocs(qUser);
+
+        const userPosts = [];
+        snap.forEach((docSnap) => {
+          userPosts.push({ id: docSnap.id, data: docSnap.data() });
+        });
+
+        if (!userPosts.length) {
+          publicFeed.innerHTML =
+            '<p class="text-xs text-slate-400">This artist has not posted anything yet.</p>';
+          return;
+        }
+
+        publicFeed.innerHTML = buildPostsHtml(userPosts);
+      } catch (err) {
+        publicFeed.innerHTML = `<p class="text-xs text-rose-400">Error loading posts: ${escapeHtml(
+          err.message
+        )}</p>`;
+      }
+    }
+
+    backFromPublicBtn.addEventListener("click", () => {
+      publicProfileUid = null;
+      publicProfileCard.classList.add("hidden");
+      const user = auth.currentUser;
+      if (user) uploadCard.classList.remove("hidden");
+      else authCard.classList.remove("hidden");
+      activeTag = null;
+      activeUserUid = null;
+      renderFeed();
+    });
+
+    // ---------- EXPLORE ----------
+    function buildExploreTagCloud() {
+      const tagCounts = new Map();
+
+      postsCache.forEach(({ data }) => {
+        const tags = Array.isArray(data.tags) ? data.tags : [];
+        tags.forEach((t) => {
+          const tag = String(t).toLowerCase();
+          if (!tag) return;
+          tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+        });
+      });
+
+      if (!tagCounts.size) {
+        exploreTagList.innerHTML =
+          '<p class="text-[11px] text-slate-400">No tags found yet. Add tags when you post artwork to see them here.</p>';
+        return;
+      }
+
+      const sorted = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]);
+      const top = sorted.slice(0, 30);
+
+      exploreTagList.innerHTML = top
+        .map(
+          ([tag, count]) => `
+            <button
+              class="px-2.5 py-1 rounded-full border border-slate-700 bg-slate-950/80 hover:bg-slate-800 text-[11px] flex items-center gap-1"
+              data-explore-tag="${tag}"
+            >
+              <span>#${tag}</span>
+              <span class="text-[10px] text-slate-400">${count}</span>
+            </button>
+          `
+        )
+        .join("");
+    }
+
+    function renderExploreFeed() {
+      if (!currentExploreTag) {
+        exploreHeading.textContent = "Browse artwork by tag";
+        exploreClearBtn.classList.add("hidden");
+        exploreFeed.innerHTML =
+          '<p class="text-[11px] text-slate-400">Select a tag on the left to see artwork with that tag.</p>';
+        return;
+      }
+
+      exploreHeading.textContent = `Artwork tagged #${currentExploreTag}`;
+      exploreClearBtn.classList.remove("hidden");
+
+      const filtered = postsCache.filter(
+        (p) =>
+          Array.isArray(p.data.tags) && p.data.tags.includes(currentExploreTag)
+      );
+
+      if (!filtered.length) {
+        exploreFeed.innerHTML =
+          '<p class="text-[11px] text-slate-400">No posts yet with this tag.</p>';
+        return;
+      }
+
+      exploreFeed.innerHTML = buildPostsHtml(filtered);
+    }
+
+    function showExplore() {
+      authCard.classList.add("hidden");
+      uploadCard.classList.add("hidden");
+      profileCard.classList.add("hidden");
+      publicProfileCard.classList.add("hidden");
+      exploreCard.classList.remove("hidden");
+
+      buildExploreTagCloud();
+      renderExploreFeed();
+    }
+
+    // ---------- EXPLORE PREVIEW (Read-only) ----------
+    // Inject the preview into the auth card on wide screens.
+    function initExplorePreview() {
+      if (document.getElementById('explorePreview')) return; // already created
+      const authCardInner = document.querySelector('#authCard');
+      if (!authCardInner) return;
+
+      // Wrap existing children into left column and append aside
+      const wrapper = document.createElement('div');
+      wrapper.className = 'auth-grid';
+
+      const left = document.createElement('div');
+      while (authCardInner.firstChild) left.appendChild(authCardInner.firstChild);
+      wrapper.appendChild(left);
+
+      const aside = document.createElement('aside');
+      aside.id = 'explorePreview';
+      aside.className = 'theme-card explore-preview';
+      aside.innerHTML = `
+        <div class="preview-header">
+          <div>
+            <div class="font-semibold">Explore preview</div>
+            <div class="preview-note">Scroll public posts — read-only preview</div>
+          </div>
+          <button id="visitExploreFull" class="px-2 py-1 text-[11px] rounded-full border">Open</button>
+        </div>
+        <div id="explorePreviewList" class="preview-list">
+          <div class="text-[12px] text-slate-400">Loading…</div>
+        </div>
+      `;
+      wrapper.appendChild(aside);
+      authCardInner.appendChild(wrapper);
+
+      // wire the "Open" button to show full explore (reuses your showExplore behavior)
+      const visitBtn = document.getElementById('visitExploreFull');
+      visitBtn.addEventListener('click', () => {
+        // show exploreCard, hide authCard (mirrors your nav logic)
+        document.getElementById('authCard').classList.add('hidden');
+        exploreCard.classList.remove('hidden');
+        buildExploreTagCloud();
+        renderExploreFeed();
+      });
+
+      // load preview posts
+      loadExplorePreview();
+    }
+
+    /* Fetch recent public posts and render compact preview (read-only) */
+    async function loadExplorePreview(limitCount = 8) {
+      const previewList = document.getElementById('explorePreviewList');
+      if (!previewList) return;
+      previewList.innerHTML = '<div class="text-[12px] text-slate-400">Loading…</div>';
+
+      try {
+        const postsCol = collection(db, 'posts');
+        const q = query(postsCol, orderBy('createdAt', 'desc'), limit(limitCount));
+        const snap = await getDocs(q);
+
+        previewList.innerHTML = '';
+        if (snap.empty) {
+          previewList.innerHTML = '<div class="text-[12px] text-slate-400">No public posts yet.</div>';
+          return;
+        }
+
+        snap.forEach(docSnap => {
+          const p = docSnap.data();
+          const id = docSnap.id;
+          const el = document.createElement('article');
+          el.className = 'rounded-lg';
+          const caption = (p.caption || '').slice(0, 120);
+          const tags = Array.isArray(p.tags) ? p.tags.slice(0,3).map(t=>`#${t}`).join(' ') : '';
+          const imgHtml = p.imageUrl ? `<div style="width:110px;flex-shrink:0;"><img src="${p.imageUrl}" alt="${escapeHtml(caption)}" style="width:100%;border-radius:8px;object-fit:cover;"></div>` : '';
+          el.innerHTML = `
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              ${imgHtml}
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:13px;color:var(--text-main);">${escapeHtml(caption)}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">${escapeHtml(tags)}</div>
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                  <button class="px-2 py-1 text-[12px] rounded-full action-btn disabled" disabled data-post-id="${id}" data-action="like">Like</button>
+                  <button class="px-2 py-1 text-[12px] rounded-full action-btn disabled" disabled data-post-id="${id}" data-action="comment">Comment</button>
+                  <button class="px-2 py-1 text-[12px] rounded-full action-btn disabled" disabled data-post-id="${id}" data-action="reshare">Reshare</button>
+                </div>
+              </div>
+            </div>
+          `;
+          previewList.appendChild(el);
+        });
+
+      } catch (err) {
+        previewList.innerHTML = `<div class="text-[12px] text-rose-400">Error loading preview: ${escapeHtml(err.message || String(err))}</div>`;
+      }
+    }
+
+    /* Keep preview in sync with auth changes (preview remains read-only on auth screen) */
+    onAuthStateChanged(auth, () => {
+      // if auth state toggles, no change to preview interactivity — preview on auth screen is always read-only
+      // However, if a signed-in user clicks "Open" we show the interactive full exploreCard
+      // Optionally we could refresh the preview content:
+      const list = document.getElementById('explorePreviewList');
+      if (list) loadExplorePreview();
+    });
+
+    /* Initialize preview when DOM is ready */
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        initExplorePreview();
+      } catch (e) {
+        console.warn('Explore preview init failed', e);
+      }
+    });
+// ---------- USER SEARCH ----------
+const userSearchInput = document.getElementById("userSearchInput");
+const userSearchResults = document.getElementById("userSearchResults");
+let allUsersCache = [];
+
+async function loadAllUsers() {
+  const snap = await getDocs(collection(db, "users"));
+  allUsersCache = [];
+  snap.forEach((docSnap) => {
+    allUsersCache.push({ uid: docSnap.id, ...docSnap.data() });
+  });
+}
+loadAllUsers();
+
+// Search logic
+userSearchInput.addEventListener("input", () => {
+  const q = userSearchInput.value.trim().toLowerCase();
+
+  if (q.length === 0) {
+    userSearchResults.classList.add("hidden");
+    return;
+  }
+
+  const matches = allUsersCache.filter((u) => {
+    return (
+      u.username?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q)
+    );
+  });
+
+  if (!matches.length) {
+    userSearchResults.innerHTML =
+      `<div class="p-3 text-rose-600">No users found</div>`;
+    userSearchResults.classList.remove("hidden");
+    return;
+  }
+
+  userSearchResults.innerHTML = matches
+    .map(
+      (u) => `
+      <div
+        class="p-3 hover:bg-rose-50 cursor-pointer border-b border-rose-100"
+        data-search-uid="${u.uid}"
+        data-search-username="${u.username || ""}"
+      >
+        <strong class="text-rose-700">${u.username || "Unnamed user"}</strong><br>
+        <span class="text-sm text-rose-500">${u.email || ""}</span>
+      </div>
+    `
+    )
+    .join("");
+
+  userSearchResults.classList.remove("hidden");
+});
+
+// click profile from search
+userSearchResults.addEventListener("click", (e) => {
+  const item = e.target.closest("[data-search-uid]");
+  if (!item) return;
+
+  const uid = item.getAttribute("data-search-uid");
+  const uname = item.getAttribute("data-search-username");
+
+  userSearchResults.classList.add("hidden");
+  userSearchInput.value = "";
+
+  showPublicProfile(uid, uname);
+});
+
+    // ---------- INITIAL LOAD ----------
+    loadFeed();
+  </script>
+</body>
+</html>
